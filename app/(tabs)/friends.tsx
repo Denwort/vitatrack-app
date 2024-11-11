@@ -1,9 +1,10 @@
 import { View, Text } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function Friends() {
   return (
-    <View>
+    <SafeAreaView>
       <Text>Friends</Text>
-    </View>
+    </SafeAreaView>
   );
 }

@@ -12,7 +12,7 @@ export default function TabBar({
   navigation,
 }: BottomTabBarProps) {
   const icon: any = {
-    home: () => <TabHomeIcon />,
+    index: () => <TabHomeIcon />,
     reports: () => <TabStatIcon />,
     addHabit: () => <TabAddIcon />,
     friends: () => <TabFriendsIcon />,

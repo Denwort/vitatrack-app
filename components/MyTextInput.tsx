@@ -2,15 +2,15 @@ import { Text, TextInput, View, StyleSheet } from "react-native";
 
 export default function MyTextInput({
   label,
-  // onChangeText = () => {},
+  onChangeText,
 }: {
   label: string;
-  // onChangeText: VoidFunction;
+  onChangeText: (text: string) => void;
 }) {
   return (
     <View>
       <Text style={styles.label}>{label}</Text>
-      <TextInput style={styles.input} />
+      <TextInput style={styles.input} onChangeText={onChangeText} />
     </View>
   );
 }
@@ -22,6 +22,8 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     borderColor: "black",
     borderWidth: 2,
+    paddingLeft: 10,
+    paddingRight: 10,
   },
   label: {
     fontSize: 24,

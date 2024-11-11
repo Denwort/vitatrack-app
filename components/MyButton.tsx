@@ -1,23 +1,35 @@
-import { Pressable, Text } from "react-native";
+import {
+  GestureResponderEvent,
+  Pressable,
+  StyleSheet,
+  Text,
+} from "react-native";
 
 export default function MyButton({
   label,
   outlined,
+  onPress,
 }: {
   label: string;
   outlined: boolean;
+  onPress: (event: GestureResponderEvent) => void;
 }) {
   return (
     <Pressable
-      style={{
-        width: 214,
-        height: 45,
-        borderRadius: 15,
-        borderColor: outlined ? "#B1AEAB" : "transparent",
-        borderWidth: 2,
-        backgroundColor: outlined ? "transparent" : "#F1E5D7",
-        paddingTop: 5,
-      }}
+      style={({ pressed }) => [
+        {
+          backgroundColor: outlined
+            ? pressed
+              ? "#E5E5E5"
+              : "transparent"
+            : pressed
+              ? "#E3D8CB"
+              : "#F1E5D7",
+          borderColor: outlined ? "#B1AEAB" : "transparent",
+        },
+        styles.button,
+      ]}
+      onPress={onPress}
     >
       <Text
         style={{
@@ -32,3 +44,13 @@ export default function MyButton({
     </Pressable>
   );
 }
+
+const styles = StyleSheet.create({
+  button: {
+    width: 214,
+    height: 45,
+    borderRadius: 15,
+    borderWidth: 2,
+    paddingTop: 5,
+  },
+});

@@ -1,9 +1,10 @@
 import { View, Text } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function Reports() {
   return (
-    <View>
+    <SafeAreaView>
       <Text>Reports</Text>
-    </View>
+    </SafeAreaView>
   );
 }
