@@ -47,7 +47,7 @@ export default function MyButton({
 
 const styles = StyleSheet.create({
   button: {
-    width: 214,
+    width: 234,
     height: 45,
     borderRadius: 15,
     borderWidth: 2,

@@ -1,16 +1,32 @@
-import { View, TouchableOpacity, StyleSheet } from "react-native";
-import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
+import {
+  View,
+  TouchableOpacity,
+  StyleSheet,
+  GestureResponderEvent,
+} from "react-native";
+import { BottomTabNavigationEventMap } from "@react-navigation/bottom-tabs";
 import TabAddIcon from "./navigation/TabAddIcon";
 import TabSettingsIcon from "./navigation/TabSettingsIcon";
 import TabHomeIcon from "./navigation/TabHomeIcon";
 import TabStatIcon from "./navigation/TabStatsIcon";
 import TabFriendsIcon from "./navigation/TabFriendsIcon";
+import {
+  NavigationHelpers,
+  ParamListBase,
+  TabNavigationState,
+} from "@react-navigation/native";
+
+interface TabProps {
+  state: TabNavigationState<ParamListBase>;
+  navigation: NavigationHelpers<ParamListBase, BottomTabNavigationEventMap>;
+  onAddHabitPress: (event: GestureResponderEvent) => void;
+}
 
 export default function TabBar({
   state,
-  descriptors,
   navigation,
-}: BottomTabBarProps) {
+  onAddHabitPress,
+}: TabProps) {
   const icon: any = {
     index: () => <TabHomeIcon />,
     reports: () => <TabStatIcon />,
@@ -22,7 +38,6 @@ export default function TabBar({
   return (
     <View style={styles.tabbar}>
       {state.routes.map((route, index) => {
-        const { options } = descriptors[route.key];
         const isFocused = state.index === index;
 
         const onPress = () => {
@@ -32,8 +47,14 @@ export default function TabBar({
             canPreventDefault: true,
           });
 
-          if (!isFocused && !event.defaultPrevented) {
+          if (
+            !isFocused &&
+            !event.defaultPrevented &&
+            route.name !== "addHabit"
+          ) {
             navigation.navigate(route.name, route.params);
+          } else {
+            onAddHabitPress();
           }
         };
 

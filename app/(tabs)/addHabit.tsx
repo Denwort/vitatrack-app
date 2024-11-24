@@ -1,9 +1,5 @@
-import { View, Text } from "react-native";
+import { View, Text, Pressable } from "react-native";
 
 export default function Add() {
-  return (
-    <View>
-      <Text>Add</Text>
-    </View>
-  );
+  return <View></View>;
 }
