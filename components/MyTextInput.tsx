@@ -3,14 +3,20 @@ import { Text, TextInput, View, StyleSheet } from "react-native";
 export default function MyTextInput({
   label,
   onChangeText,
+  secure = false,
 }: {
   label: string;
   onChangeText: (text: string) => void;
+  secure?: boolean;
 }) {
   return (
     <View>
       <Text style={styles.label}>{label}</Text>
-      <TextInput style={styles.input} onChangeText={onChangeText} />
+      <TextInput
+        style={styles.input}
+        onChangeText={onChangeText}
+        secureTextEntry={secure}
+      />
     </View>
   );
 }

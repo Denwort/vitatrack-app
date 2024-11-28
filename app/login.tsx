@@ -1,4 +1,5 @@
 import { useRouter } from "expo-router";
+import { jwtDecode } from "jwt-decode";
 import React, { useState } from "react";
 import { View, Text, Image, Pressable, StyleSheet } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -8,38 +9,35 @@ import MyButton from "@/components/MyButton";
 import axios from "axios";
 import apiURL from "../api/usuariosApi";
 
-
 const LoginScreen = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const router = useRouter();
 
+  function fixBase64(token: string) {
+    return token.replace(/-/g, "+").replace(/_/g, "/");
+  }
+
   const handleLogin = async () => {
     console.log("Iniciar sesión con", email, password);
     try {
-      const response = await axios.post(`${apiURL}/auth/login`, { correo: email, contrasena: password });
-      
-      const { tokens } = response.data;      
-      const decodedIdToken = decodeToken(tokens.IdToken);
-      const userId = decodedIdToken.sub
-    
-      await AsyncStorage.setItem("user", userId);
+      const response = await axios.post(`${apiURL}/auth/login`, {
+        correo: email,
+        contrasena: password,
+      });
+
+      const { tokens } = response.data;
+      const fixedToken = fixBase64(tokens.IdToken);
+      const decodedIdToken = jwtDecode(fixedToken);
+      const userId = decodedIdToken.sub;
+
+      await AsyncStorage.setItem("user", userId as string);
 
       router.replace("/(tabs)");
     } catch (err) {
-      console.error("Error guardando auth:");
+      console.error("Error guardando auth:", err);
     }
   };
-
-  function decodeToken(token: string) {
-    const parts = token.split(".");
-    if (parts.length !== 3) {
-      throw new Error("Token no válido");
-    }
-    const payload = parts[1];
-    const decodedPayload = atob(payload.replace(/-/g, "+").replace(/_/g, "/"));
-    return JSON.parse(decodedPayload);
-  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -52,7 +50,11 @@ const LoginScreen = () => {
       <Text style={styles.title}>VitaTrack</Text>
       <View style={styles.inputs}>
         <MyTextInput label={"Email"} onChangeText={setEmail} />
-        <MyTextInput label={"Password"} onChangeText={setPassword} />
+        <MyTextInput
+          label={"Password"}
+          onChangeText={setPassword}
+          secure={true}
+        />
       </View>
       <Pressable onPress={() => router.push("/recover")}>
         <Text style={styles.forget}>Forget password?</Text>
