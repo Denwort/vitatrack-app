@@ -18,7 +18,9 @@ import messageAPI from "@/api/messageApi";
 
 export default function ChatScreen() {
   const [changeText, setChangeText] = useState<string>("");
-  const [messages, setMessages] = useState<object[] | never[]>([]);
+  const [messages, setMessages] = useState<
+    { chat: string; senderID: string; content: string }[] | never[]
+  >([]);
 
   const router = useRouter();
   const { participant1, particiapant2, chat } = useLocalSearchParams();
@@ -26,41 +28,44 @@ export default function ChatScreen() {
   const scrollViewRef = useRef<ScrollView>(null);
 
   useEffect(() => {
-    function onMessage(data: {
+    const handleConnect = () => {
+      console.log("Conectado al servidor:", socket.id);
+    };
+
+    const handleDisconnect = () => {
+      console.log("Desconectado del servidor");
+    };
+
+    const onMessage = (data: {
       chat: string;
-      senderId: string;
+      senderID: string;
       content: string;
-    }) {
-      console.log("Mensaje:", data);
-      setMessages((message) => [...message, data]);
-    }
+    }) => {
+      console.log("Mensaje recibido:", data);
+    };
 
-    async function getMessages(chat: string) {
-      const message = await messageAPI.getMessage(chat);
-      setMessages(message);
-    }
-    getMessages(chat as string);
-
-    handleConnection();
-
+    socket.on("connect", handleConnect);
+    socket.on("disconnect", handleDisconnect);
     socket.on("message", onMessage);
 
+    (async () => {
+      const messages = await messageAPI.getMessage(chat as string);
+      setMessages(messages);
+    })();
+
     return () => {
+      socket.off("connect", handleConnect);
+      socket.off("disconnect", handleDisconnect);
       socket.off("message", onMessage);
       socket.disconnect();
     };
-  }, []);
+  }, [socket.connected]);
 
   useEffect(() => {
     if (scrollViewRef.current) {
       scrollViewRef.current.scrollToEnd({ animated: false });
     }
   }, [messages]);
-
-  const handleConnection = async () => {
-    socket.emit("username", participant1);
-    socket.connect();
-  };
 
   const handleInputChange = (text: string) => {
     if (text.includes("\n")) {
@@ -70,15 +75,19 @@ export default function ChatScreen() {
     }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!changeText.trim()) return;
     const data = {
-      senderId: "",
+      chat: chat as string,
+      senderID: participant1 as string,
       content: changeText.trim(),
     };
     setMessages((message) => [...message, data]);
     socket.emit("message", data);
     setChangeText("");
+
+    const response = await messageAPI.postMessage(data);
+    console.log(response);
   };
 
   return (
@@ -95,7 +104,7 @@ export default function ChatScreen() {
                 },
                 styles.touchables,
               ]}
-              onPress={() => router.back()}
+              onPress={() => router.replace("/(tabs)/friends")}
             >
               <BackIcon />
             </Pressable>
@@ -131,12 +140,12 @@ export default function ChatScreen() {
             return (
               <ChatBubble
                 key={key}
-                isOwnMessage={participant1 === message.senderId}
+                isOwnMessage={participant1 === message.senderID}
                 bubbleColor={
-                  participant1 === message.senderId ? "#1084ff" : "#C6C6C6"
+                  participant1 === message.senderID ? "#1084ff" : "#C6C6C6"
                 }
                 tailColor={
-                  participant1 === message.senderId ? "#1084ff" : "#C6C6C6"
+                  participant1 === message.senderID ? "#1084ff" : "#C6C6C6"
                 }
                 withTail={true}
               >

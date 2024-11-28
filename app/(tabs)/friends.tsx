@@ -1,5 +1,6 @@
 import chatAPI from "@/api/chatApi";
 import MyButton from "@/components/MyButton";
+import socket from "@/utils/socket";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import { View, Text } from "react-native";
@@ -13,16 +14,21 @@ export default function Friends() {
 
     const chat = await chatAPI.createOrGetChat(participant1, participant2);
 
-    console.log(chat);
-
-    router.push({
-      pathname: "/chat",
-      params: {
-        participant1: participant1,
-        participant2: participant2,
-        chat: chat._id,
-      },
+    socket.connect();
+    socket.on("connect_error", (err) => {
+      console.error("Error al conectar:", err);
     });
+
+    if (socket.connected) {
+      router.push({
+        pathname: "/chat",
+        params: {
+          participant1,
+          participant2,
+          chat: chat._id,
+        },
+      });
+    }
   };
 
   return (
