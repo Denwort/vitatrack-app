@@ -1,6 +1,10 @@
 import axios from "axios";
+import { Platform } from "react-native";
 
-const url = "http://10.0.2.2:3007/api";
+const url =
+  Platform.OS === "android"
+    ? "http://10.0.2.2:3007/api"
+    : "http://localhost:3007/api";
 
 const postMessage = async (payload: object) => {
   const endpoint = url.concat("/message");

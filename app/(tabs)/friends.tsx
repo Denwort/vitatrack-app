@@ -13,7 +13,9 @@ interface Friend {
   id: string; // UUID
   nombre: string;
   correo: string;
-  foto: string | "https://images.rawpixel.com/image_800/czNmcy1wcml2YXRlL3Jhd3BpeGVsX2ltYWdlcy93ZWJzaXRlX2NvbnRlbnQvbHIvdjkzNy1hZXctMTY1LWtsaGN3ZWNtLmpwZw.jpg";
+  foto:
+    | string
+    | "https://images.rawpixel.com/image_800/czNmcy1wcml2YXRlL3Jhd3BpeGVsX2ltYWdlcy93ZWJzaXRlX2NvbnRlbnQvbHIvdjkzNy1hZXctMTY1LWtsaGN3ZWNtLmpwZw.jpg";
   premiun: boolean;
   ultima_act: string;
 }
@@ -25,10 +27,11 @@ export default function Friends() {
   useEffect(() => {
     const fetchFriends = async () => {
       try {
-
         const userId: string | null = await AsyncStorage.getItem("user");
 
-        const response = await axios.post(`${apiURL}/amistad/amigos`, { userId });
+        const response = await axios.post(`${apiURL}/amistad/amigos`, {
+          userId,
+        });
 
         setFriends(response.data);
       } catch (error) {
@@ -39,32 +42,31 @@ export default function Friends() {
     fetchFriends();
   }, []);
 
-  const handleChat = async (participant2: string) => {
-    
-    try{
+  const handleChat = async (participant2: string, name: string) => {
+    try {
       const userId: string | null = await AsyncStorage.getItem("user");
-      if(!userId) throw new Error ("No se pudo obtener el userId")
-      const participant1: string = userId
+      if (!userId) throw new Error("No se pudo obtener el userId");
+      const participant1: string = userId;
 
       const chat = await chatAPI.createOrGetChat(participant1, participant2);
+      console.log(chat);
 
       socket.connect();
       socket.on("connect_error", (err) => {
         console.error("Error al conectar:", err);
       });
 
-      if (socket.connected) {
-        router.push({
-          pathname: "/chat",
-          params: {
-            participant1,
-            participant2,
-            chat: chat._id,
-          },
-        });
-      }
-    } catch(error){
-      console.log("error al iniciar chat")
+      router.push({
+        pathname: "/chat",
+        params: {
+          participant1: participant1,
+          participant2: participant2,
+          chat: chat._id,
+          name: name,
+        },
+      });
+    } catch (error) {
+      console.log("error al iniciar chat");
     }
   };
 
@@ -72,23 +74,34 @@ export default function Friends() {
     <SafeAreaView style={{ flex: 1 }}>
       <View style={{ padding: 15 }}>
         {/* Título de la sección */}
-        <Text style={{ fontSize: 24, fontWeight: 'bold', marginBottom: 20 }}>Social</Text>
+        <Text style={{ fontSize: 24, fontWeight: "bold", marginBottom: 20 }}>
+          Social
+        </Text>
 
         {/* Mapeamos los amigos */}
         {friends.map((friend) => (
-          <View key={friend.id} style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 15 }}>
+          <View
+            key={friend.id}
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              marginBottom: 15,
+            }}
+          >
             {/* Imagen del amigo */}
-            <View style={{
-              width: 50,
-              height: 50,
-              borderRadius: 25,
-              overflow: 'hidden',
-              marginRight: 15
-            }}>
+            <View
+              style={{
+                width: 50,
+                height: 50,
+                borderRadius: 25,
+                overflow: "hidden",
+                marginRight: 15,
+              }}
+            >
               {/* Si tiene foto, mostramos la imagen; si no, mostramos un placeholder */}
               <Image
-                source={{ uri: friend.foto } } // Imagen predeterminada si no tiene foto
-                style={{ width: '100%', height: '100%' }}
+                source={{ uri: friend.foto }} // Imagen predeterminada si no tiene foto
+                style={{ width: "100%", height: "100%" }}
               />
             </View>
 
@@ -96,7 +109,7 @@ export default function Friends() {
             <Text style={{ flex: 1, fontSize: 18 }}>{friend.nombre}</Text>
             <MyButton
               label="Chat"
-              onPress={() => handleChat(friend.id)} // Aquí se pasa el ID del amigo y el del usuario
+              onPress={() => handleChat(friend.id, friend.nombre)} // Aquí se pasa el ID del amigo y el del usuario
               outlined={true}
             />
           </View>

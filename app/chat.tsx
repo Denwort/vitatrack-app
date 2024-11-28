@@ -23,7 +23,7 @@ export default function ChatScreen() {
   >([]);
 
   const router = useRouter();
-  const { participant1, particiapant2, chat } = useLocalSearchParams();
+  const { participant1, participant2, chat, name } = useLocalSearchParams();
 
   const scrollViewRef = useRef<ScrollView>(null);
 
@@ -42,6 +42,7 @@ export default function ChatScreen() {
       content: string;
     }) => {
       console.log("Mensaje recibido:", data);
+      setMessages((message) => [...message, data]);
     };
 
     socket.on("connect", handleConnect);
@@ -59,7 +60,7 @@ export default function ChatScreen() {
       socket.off("message", onMessage);
       socket.disconnect();
     };
-  }, [socket.connected]);
+  }, []);
 
   useEffect(() => {
     if (scrollViewRef.current) {
@@ -82,7 +83,6 @@ export default function ChatScreen() {
       senderID: participant1 as string,
       content: changeText.trim(),
     };
-    setMessages((message) => [...message, data]);
     socket.emit("message", data);
     setChangeText("");
 
@@ -117,7 +117,7 @@ export default function ChatScreen() {
                   marginTop: 5,
                 }}
               >
-                User
+                {name}
               </Text>
             </View>
           </View>
