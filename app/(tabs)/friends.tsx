@@ -239,7 +239,12 @@ const styles = StyleSheet.create({
   },
   friendImage: { width: 50, height: 50, borderRadius: 25, marginRight: 15 },
   friendName: { flex: 1, fontSize: 18 },
-  buttons: { flexDirection: "row", justifyContent: "space-between", marginTop: 20 },
+  buttons: {
+    flexDirection: "column", // Coloca los botones en columna
+    justifyContent: "flex-start", // Alinea hacia la parte superior
+    alignItems: "center", // Centra horizontalmente los botones
+    marginVertical: 10, // Espaciado entre los botones y otros elementos
+  },
   modalContainer: {
     flex: 1,
     justifyContent: "center",
