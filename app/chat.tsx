@@ -1,7 +1,7 @@
 import BackIcon from "@/components/BackIcon";
 import ChatInput from "@/components/ChatInput";
 import MoreIcon from "@/components/MoreIcon";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Image,
   Pressable,
@@ -12,11 +12,74 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import ChatBubble from "react-native-chat-bubble";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
+import socket from "../utils/socket";
+import messageAPI from "@/api/messageApi";
 
 export default function ChatScreen() {
   const [changeText, setChangeText] = useState<string>("");
+  const [messages, setMessages] = useState<object[] | never[]>([]);
+
   const router = useRouter();
+  const { participant1, particiapant2, chat } = useLocalSearchParams();
+
+  const scrollViewRef = useRef<ScrollView>(null);
+
+  useEffect(() => {
+    function onMessage(data: {
+      chat: string;
+      senderId: string;
+      content: string;
+    }) {
+      console.log("Mensaje:", data);
+      setMessages((message) => [...message, data]);
+    }
+
+    async function getMessages(chat: string) {
+      const message = await messageAPI.getMessage(chat);
+      setMessages(message);
+    }
+    getMessages(chat as string);
+
+    handleConnection();
+
+    socket.on("message", onMessage);
+
+    return () => {
+      socket.off("message", onMessage);
+      socket.disconnect();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (scrollViewRef.current) {
+      scrollViewRef.current.scrollToEnd({ animated: false });
+    }
+  }, [messages]);
+
+  const handleConnection = async () => {
+    socket.emit("username", participant1);
+    socket.connect();
+  };
+
+  const handleInputChange = (text: string) => {
+    if (text.includes("\n")) {
+      handleSubmit();
+    } else {
+      setChangeText(text);
+    }
+  };
+
+  const handleSubmit = () => {
+    if (!changeText.trim()) return;
+    const data = {
+      senderId: "",
+      content: changeText.trim(),
+    };
+    setMessages((message) => [...message, data]);
+    socket.emit("message", data);
+    setChangeText("");
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -63,26 +126,35 @@ export default function ChatScreen() {
         </View>
       </View>
       <View style={styles.chatContainer}>
-        <ScrollView style={styles.messages}>
-          <ChatBubble
-            isOwnMessage={true}
-            bubbleColor="#1084ff"
-            tailColor="#1084ff"
-            withTail={true}
-          >
-            <Text
-              style={{
-                color: "white",
-                fontSize: 14,
-                fontFamily: "Poppins-Medium",
-              }}
-            >
-              Your message content
-            </Text>
-          </ChatBubble>
+        <ScrollView style={styles.messages} ref={scrollViewRef}>
+          {messages?.map((message, key) => {
+            return (
+              <ChatBubble
+                key={key}
+                isOwnMessage={participant1 === message.senderId}
+                bubbleColor={
+                  participant1 === message.senderId ? "#1084ff" : "#C6C6C6"
+                }
+                tailColor={
+                  participant1 === message.senderId ? "#1084ff" : "#C6C6C6"
+                }
+                withTail={true}
+              >
+                <Text
+                  style={{
+                    color: "white",
+                    fontSize: 14,
+                    fontFamily: "Poppins-Medium",
+                  }}
+                >
+                  {message.content}
+                </Text>
+              </ChatBubble>
+            );
+          })}
         </ScrollView>
         <View style={{ marginBottom: 15 }}>
-          <ChatInput onChangeText={setChangeText} />
+          <ChatInput onChangeText={handleInputChange} value={changeText} />
         </View>
       </View>
     </SafeAreaView>
@@ -125,6 +197,7 @@ const styles = StyleSheet.create({
   },
   chatContainer: {
     flexDirection: "column",
+    flex: 1,
     paddingLeft: 15,
     paddingRight: 15,
     flexGrow: 1,

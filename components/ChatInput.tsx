@@ -1,4 +1,11 @@
-import { StyleSheet, TextInput, TouchableOpacity, View } from "react-native";
+import {
+  NativeSyntheticEvent,
+  StyleSheet,
+  TextInput,
+  TextInputKeyPressEventData,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import EmojiIcon from "./EmojiIcon";
 import LinkIcon from "./LinkIcon";
 import { useState } from "react";
@@ -6,9 +13,10 @@ import RecordIcon from "./RecordIcon";
 
 interface ChatInputProps {
   onChangeText: (text: string) => void;
+  value: string;
 }
 
-export default function ChatInput({ onChangeText }: ChatInputProps) {
+export default function ChatInput({ onChangeText, value }: ChatInputProps) {
   const [inputHeight, setInputHeight] = useState<number>(47);
 
   return (
@@ -19,6 +27,8 @@ export default function ChatInput({ onChangeText }: ChatInputProps) {
           <TextInput
             placeholder="Message"
             multiline={true}
+            value={value}
+            onChangeText={onChangeText}
             onContentSizeChange={(event) => {
               setInputHeight(
                 Math.max(47, event.nativeEvent.contentSize.height),
