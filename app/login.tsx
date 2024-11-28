@@ -5,6 +5,9 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { SafeAreaView } from "react-native-safe-area-context";
 import MyTextInput from "@/components/MyTextInput";
 import MyButton from "@/components/MyButton";
+import axios from "axios";
+import apiURL from "../api/usuariosApi";
+
 
 const LoginScreen = () => {
   const [email, setEmail] = useState("");
@@ -13,15 +16,30 @@ const LoginScreen = () => {
 
   const handleLogin = async () => {
     console.log("Iniciar sesión con", email, password);
-    const token = { email: email, password: password };
-
     try {
-      await AsyncStorage.setItem("user", JSON.stringify(token));
+      const response = await axios.post(`${apiURL}/auth/login`, { correo: email, contrasena: password });
+      
+      const { tokens } = response.data;      
+      const decodedIdToken = decodeToken(tokens.IdToken);
+      const userId = decodedIdToken.sub
+    
+      await AsyncStorage.setItem("user", userId);
+
       router.replace("/(tabs)");
     } catch (err) {
-      console.error("Error guardando auth");
+      console.error("Error guardando auth:");
     }
   };
+
+  function decodeToken(token: string) {
+    const parts = token.split(".");
+    if (parts.length !== 3) {
+      throw new Error("Token no válido");
+    }
+    const payload = parts[1];
+    const decodedPayload = atob(payload.replace(/-/g, "+").replace(/_/g, "/"));
+    return JSON.parse(decodedPayload);
+  }
 
   return (
     <SafeAreaView style={styles.container}>
