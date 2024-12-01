@@ -1,5 +1,15 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, Image, Modal, TextInput, StyleSheet, ScrollView, TouchableOpacity } from "react-native";
+import {
+  View,
+  Text,
+  Image,
+  Modal,
+  TextInput,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  Pressable,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -31,14 +41,16 @@ export default function Friends() {
   const [friends, setFriends] = useState<Friend[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [email, setEmail] = useState("");
-  const [solicitudes, setSolicitudes] = useState<Solicitudes[]>([]);  // Cambié el tipo a any para incluir el perfil
-  const [solicitudesModalVisible, setSolicitudesModalVisible] = useState(false);  // Nuevo estado para el modal de solicitudes
+  const [solicitudes, setSolicitudes] = useState<Solicitudes[]>([]); // Cambié el tipo a any para incluir el perfil
+  const [solicitudesModalVisible, setSolicitudesModalVisible] = useState(false); // Nuevo estado para el modal de solicitudes
 
   useEffect(() => {
     const fetchFriends = async () => {
       try {
         const userId = await AsyncStorage.getItem("user");
-        const response = await axios.post(`${apiURL}/amistad/amigos`, { userId });
+        const response = await axios.post(`${apiURL}/amistad/amigos`, {
+          userId,
+        });
         setFriends(response.data);
       } catch (error) {
         console.error("Error al obtener amigos:", error);
@@ -56,7 +68,9 @@ export default function Friends() {
       const chat = await chatAPI.createOrGetChat(userId, participant2);
 
       socket.connect();
-      socket.on("connect_error", (err) => console.error("Error al conectar:", err));
+      socket.on("connect_error", (err) =>
+        console.error("Error al conectar:", err),
+      );
 
       router.push({
         pathname: "/chat",
@@ -83,7 +97,7 @@ export default function Friends() {
     try {
       const userId = await AsyncStorage.getItem("user");
       const response = await axios.post(`${apiURL}/solicitud/ver`, { userId });
-      console.log(response.data)
+      console.log(response.data);
       setSolicitudes(response.data);
     } catch (error) {
       console.error("Error al obtener solicitudes:", error);
@@ -114,21 +128,25 @@ export default function Friends() {
     <SafeAreaView style={{ flex: 1 }}>
       <View style={styles.container}>
         <Text style={styles.title}>Social</Text>
-  
-        <ScrollView>
-          {friends.map((friend) => (
-            <View key={friend.id} style={styles.friendCard}>
-              <Image source={{ uri: friend.foto }} style={styles.friendImage} />
-              <Text style={styles.friendName}>{friend.nombre}</Text>
-              <MyButton
-                label="Chat"
+
+        <ScrollView horizontal={true} style={{ margin: 10 }}>
+          <View style={{ flexDirection: "row", gap: 10 }}>
+            {friends.map((friend) => (
+              <Pressable
+                key={friend.id}
+                style={styles.friendCard}
                 onPress={() => handleChat(friend.id, friend.nombre)}
-                outlined={true}
-              />
-            </View>
-          ))}
+              >
+                <Image
+                  source={{ uri: friend.foto }}
+                  style={styles.friendImage}
+                />
+                <Text style={styles.friendName}>{friend.nombre}</Text>
+              </Pressable>
+            ))}
+          </View>
         </ScrollView>
-  
+
         <View style={styles.buttons}>
           <MyButton
             label="Enviar Solicitud"
@@ -140,11 +158,11 @@ export default function Friends() {
             outlined={true}
             onPress={() => {
               fetchSolicitudes();
-              setSolicitudesModalVisible(true);  // Mostrar el modal de solicitudes
+              setSolicitudesModalVisible(true); // Mostrar el modal de solicitudes
             }}
           />
         </View>
-  
+
         {/* Modal para enviar solicitud */}
         <Modal
           visible={modalVisible}
@@ -161,7 +179,11 @@ export default function Friends() {
                 value={email}
                 onChangeText={setEmail}
               />
-              <MyButton label="Enviar" outlined={true} onPress={handleSendRequest} />
+              <MyButton
+                label="Enviar"
+                outlined={true}
+                onPress={handleSendRequest}
+              />
               <MyButton
                 label="Cancelar"
                 outlined={true}
@@ -170,7 +192,7 @@ export default function Friends() {
             </View>
           </View>
         </Modal>
-  
+
         {/* Modal para mostrar solicitudes */}
         <Modal
           visible={solicitudesModalVisible}
@@ -186,21 +208,25 @@ export default function Friends() {
                   solicitudes.map((solicitud) => (
                     <View key={solicitud.id} style={styles.solicitudCard}>
                       {/* Envolvemos el nombre en <Text> */}
-                      <Text>{solicitud.perfil?.nombre || "Nombre no disponible"}</Text>
+                      <Text>
+                        {solicitud.perfil?.nombre || "Nombre no disponible"}
+                      </Text>
                       <View style={styles.solicitudButtons}>
                         {/* Botón de aceptar */}
                         <TouchableOpacity
                           onPress={() => handleAcceptRequest(solicitud.id)}
                           style={styles.solicitudButton}
                         >
-                          <Text style={styles.buttonText}>✔</Text> {/* Símbolo de check */}
+                          <Text style={styles.buttonText}>✔</Text>{" "}
+                          {/* Símbolo de check */}
                         </TouchableOpacity>
                         {/* Botón de rechazar */}
                         <TouchableOpacity
                           onPress={() => handleRejectRequest(solicitud.id)}
                           style={styles.solicitudButton}
                         >
-                          <Text style={styles.buttonText}>❌</Text> {/* Símbolo de equis */}
+                          <Text style={styles.buttonText}>❌</Text>{" "}
+                          {/* Símbolo de equis */}
                         </TouchableOpacity>
                       </View>
                     </View>
@@ -224,26 +250,26 @@ export default function Friends() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 15, backgroundColor: "#f8f8f8" },
-  title: { fontSize: 24, fontWeight: "bold", marginBottom: 20 },
-  friendCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 10,
-    backgroundColor: "#fff",
-    borderRadius: 10,
-    marginBottom: 10,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 4,
+  title: {
+    fontSize: 32,
+    fontFamily: "Poppins-SemiBold",
+    textAlign: "center",
   },
-  friendImage: { width: 50, height: 50, borderRadius: 25, marginRight: 15 },
-  friendName: { flex: 1, fontSize: 18 },
+  friendCard: {
+    flexDirection: "column",
+    alignItems: "center",
+  },
+  friendImage: { width: 50, height: 50, borderRadius: 25 },
+  friendName: {
+    textAlign: "center",
+    fontSize: 14,
+    fontFamily: "Poppins-Medium",
+    marginTop: 5,
+  },
   buttons: {
-    flexDirection: "column", // Coloca los botones en columna
-    justifyContent: "flex-start", // Alinea hacia la parte superior
-    alignItems: "center", // Centra horizontalmente los botones
-    marginVertical: 10, // Espaciado entre los botones y otros elementos
+    flexDirection: "column",
+    alignItems: "center",
+    gap: 10,
   },
   modalContainer: {
     flex: 1,

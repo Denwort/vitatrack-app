@@ -16,11 +16,13 @@ import {
 import MyButton from "@/components/MyButton";
 import MyDropdown from "@/components/MyDropdown";
 import MyTextInput from "@/components/MyTextInput";
+import TimeRangePicker from "@/components/TimePicker";
 
 export default function TabLayout() {
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [showHabits, setShowHabits] = useState<boolean>(false);
   const [showCreate, setShowCreate] = useState<boolean>(false);
+  const [showAdd, setShowAdd] = useState<boolean>(false);
   const [text, setText] = useState<string>("");
   const [selectedDuration, setSelectedDuration] = useState<{
     label: string;
@@ -30,6 +32,10 @@ export default function TabLayout() {
     label: string;
     value: string;
   } | null>(null);
+  const [startTime, setStartTime] = useState<Date>(new Date());
+  const [endTime, setEndTime] = useState<Date>(
+    new Date(startTime.getTime() + 60000),
+  );
 
   const bottomSheetRef = useRef<BottomSheet>(null);
   const snapPoints: string[] = ["95%"];
@@ -69,6 +75,7 @@ export default function TabLayout() {
     setIsOpen(true);
     setShowHabits(true);
     setShowCreate(false);
+    setShowAdd(false);
   };
 
   const closeBottomSheet = () => {
@@ -81,7 +88,18 @@ export default function TabLayout() {
     setShowCreate(true);
   };
 
-  const handleCreate = () => {};
+  const handleCreate = () => {
+    const habit = {
+      name: text,
+      duration: selectedDuration?.value,
+      reminder: selectedReminder?.value,
+      start: startTime,
+      end: endTime,
+    };
+
+    console.log(habit);
+    closeBottomSheet();
+  };
 
   const newHabitView = () => {
     return (
@@ -110,6 +128,11 @@ export default function TabLayout() {
                 styles.imagePress,
               ]}
               activeOpacity={0.7}
+              onPress={() => {
+                setText("Run");
+                setShowHabits(false);
+                setShowAdd(true);
+              }}
             >
               <Text style={[{ color: habits.run.text }, styles.imageText]}>
                 Run
@@ -127,6 +150,11 @@ export default function TabLayout() {
                 styles.imagePress,
               ]}
               activeOpacity={0.7}
+              onPress={() => {
+                setText("Read");
+                setShowHabits(false);
+                setShowAdd(true);
+              }}
             >
               <Text style={[{ color: habits.read.text }, styles.imageText]}>
                 Read
@@ -146,6 +174,11 @@ export default function TabLayout() {
                 styles.imagePress,
               ]}
               activeOpacity={0.7}
+              onPress={() => {
+                setText("Drink water");
+                setShowHabits(false);
+                setShowAdd(true);
+              }}
             >
               <Text style={[{ color: habits.water.text }, styles.imageText]}>
                 Drink water
@@ -163,6 +196,11 @@ export default function TabLayout() {
                 styles.imagePress,
               ]}
               activeOpacity={0.7}
+              onPress={() => {
+                setText("Yoga");
+                setShowHabits(false);
+                setShowAdd(true);
+              }}
             >
               <Text style={[{ color: habits.yoga.text }, styles.imageText]}>
                 Yoga
@@ -216,13 +254,59 @@ export default function TabLayout() {
             selectedValue={selectedReminder}
             setSelectedValue={setSelectedReminder}
           />
+          <TimeRangePicker
+            startTime={startTime}
+            endTime={endTime}
+            setStartTime={setStartTime}
+            setEndTime={setEndTime}
+          />
         </View>
         <View style={styles.create}>
-          <MyButton
-            label="Create"
+          <MyButton label="Create" onPress={handleCreate} outlined={false} />
+        </View>
+      </View>
+    );
+  };
+
+  const addHabit = () => {
+    return (
+      <View style={{ padding: 20, flexDirection: "column", flexGrow: 1 }}>
+        <View style={styles.sheetContainer}>
+          <Text style={styles.title}>Create your habit</Text>
+          <Pressable
             onPress={closeBottomSheet}
-            outlined={false}
+            style={({ pressed }) => [
+              {
+                backgroundColor: pressed ? "#EAEAEA" : "transparent",
+              },
+              styles.close,
+            ]}
+          >
+            <CloseIcon />
+          </Pressable>
+        </View>
+        <View style={styles.mainContainer}>
+          <MyDropdown
+            label="Duration"
+            options={duration}
+            selectedValue={selectedDuration}
+            setSelectedValue={setSelectedDuration}
           />
+          <MyDropdown
+            label="Reminder"
+            options={reminders}
+            selectedValue={selectedReminder}
+            setSelectedValue={setSelectedReminder}
+          />
+          <TimeRangePicker
+            startTime={startTime}
+            endTime={endTime}
+            setStartTime={setStartTime}
+            setEndTime={setEndTime}
+          />
+        </View>
+        <View style={styles.create}>
+          <MyButton label="Create" onPress={handleCreate} outlined={false} />
         </View>
       </View>
     );
@@ -255,6 +339,7 @@ export default function TabLayout() {
             <BottomSheetView style={{ flex: 1 }}>
               {showHabits && newHabitView()}
               {showCreate && createHabit()}
+              {showAdd && addHabit()}
             </BottomSheetView>
           </BottomSheet>
         )}

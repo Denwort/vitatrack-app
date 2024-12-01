@@ -1,11 +1,9 @@
-import MyButton from "@/components/MyButton";
-import MyTextInput from "@/components/MyTextInput";
-import { View, Text } from "react-native";
+import { View, Text, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useEffect, useState } from "react";
-import MyDropdown from "@/components/MyDropdown";
 import Calendar from "@/components/Calendar";
 import dayjs from "dayjs";
+import Habit from "@/components/Habit";
 
 export default function Home() {
   const [selectedValue, setSelectedValue] = useState<{
@@ -22,6 +20,25 @@ export default function Home() {
     { label: "Weekly", value: "week" },
     { label: "Monthly", value: "month" },
   ];
+
+  const habits = {
+    run: {
+      text: "#A36D05",
+      color: "#F5D596",
+    },
+    read: {
+      text: "#469608",
+      color: "#ABE77D",
+    },
+    water: {
+      text: "#046482",
+      color: "#7DE7D4",
+    },
+    yoga: {
+      text: "#748609",
+      color: "#DAE592",
+    },
+  };
 
   useEffect(() => {
     const start: dayjs.Dayjs = dayjs().startOf("month");
@@ -44,17 +61,49 @@ export default function Home() {
   return (
     <SafeAreaView
       style={{
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
+        flex: 1,
         backgroundColor: "white",
       }}
     >
-      <Calendar
-        calendar={calendar}
-        selectedDate={selectedDate}
-        setSelectedDate={setSelectedDate}
-      />
+      <View style={{ height: 96 }}>
+        <Calendar
+          calendar={calendar}
+          selectedDate={selectedDate}
+          setSelectedDate={setSelectedDate}
+        />
+      </View>
+      <View style={styles.main}>
+        <Habit
+          name="Run"
+          color={habits.run.color}
+          startTime="9:00"
+          endTime="10:00"
+        />
+        <Habit
+          name="Read"
+          color={habits.read.color}
+          startTime="12:00"
+          endTime="14:00"
+        />
+        <Habit
+          name="Drink water"
+          color={habits.water.color}
+          startTime="14:00"
+          endTime="14:15"
+        />
+      </View>
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  main: {
+    flexDirection: "column",
+    alignItems: "center",
+    paddingTop: 15,
+    paddingBottom: 15,
+    paddingLeft: 10,
+    paddingRight: 10,
+    gap: 15,
+  },
+});
