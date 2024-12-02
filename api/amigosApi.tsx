@@ -1,6 +1,5 @@
 import { Platform } from "react-native";
 
-const url =
-  Platform.OS === "android" ? "http://10.0.2.2:3002" : "http://localhost:3002";
+const url = "http://18.191.203.53"
 
 export default url;
