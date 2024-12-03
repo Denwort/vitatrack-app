@@ -9,6 +9,7 @@ import CloseIcon from "@/components/CloseIcon";
 import MyButton from "@/components/MyButton";
 import MyDropdown from "@/components/MyDropdown";
 import TimeRangePicker from "@/components/TimePicker";
+import { useDataContext } from "@/context/dataContext";
 
 export default function Home() {
   const [selectedValue, setSelectedValue] = useState<{
@@ -16,7 +17,7 @@ export default function Home() {
     value: string;
   } | null>(null);
   const [selectedDate, setSelectedDate] = useState<string | null>(
-    dayjs().format("D")
+    dayjs().format("D"),
   );
   const [calendar, setCalendar] = useState<{ date: string; day: string }[]>([]);
   const [isEditOpen, setIsEditOpen] = useState<boolean>(false);
@@ -29,12 +30,15 @@ export default function Home() {
   } | null>(null);
   const [startTime, setStartTime] = useState<Date>(new Date());
   const [endTime, setEndTime] = useState<Date>(
-    new Date(new Date().getTime() + 60000)
+    new Date(new Date().getTime() + 60000),
   );
   const [selectedReminder, setSelectedReminder] = useState<{
     label: string;
     value: string;
   } | null>(null);
+
+  const [habit, setHabit] = useState<any>(null);
+  const { data } = useDataContext();
 
   const bottomSheetRef = useRef<BottomSheet>(null);
   const snapPoints: string[] = ["50%"];
@@ -87,7 +91,9 @@ export default function Home() {
     }
 
     setCalendar(temp);
-  }, []);
+    setHabit(data?.habits);
+    console.log("Habits", data);
+  }, [data]);
 
   const handleHabitPress = (habit: {
     name: string;
@@ -97,15 +103,15 @@ export default function Home() {
     completed?: boolean;
   }) => {
     setSelectedHabit(habit);
-    const [startHour, startMinute] = habit.startTime.split(':');
-    const [endHour, endMinute] = habit.endTime.split(':');
-    
+    const [startHour, startMinute] = habit.startTime.split(":");
+    const [endHour, endMinute] = habit.endTime.split(":");
+
     const newStartTime = new Date();
     newStartTime.setHours(parseInt(startHour), parseInt(startMinute));
-    
+
     const newEndTime = new Date();
     newEndTime.setHours(parseInt(endHour), parseInt(endMinute));
-    
+
     setStartTime(newStartTime);
     setEndTime(newEndTime);
     setIsEditOpen(true);
@@ -120,11 +126,19 @@ export default function Home() {
   const handleSave = () => {
     const updatedHabit = {
       ...selectedHabit!,
-      startTime: startTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }),
-      endTime: endTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }),
-      reminder: selectedReminder?.value
+      startTime: startTime.toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+      }),
+      endTime: endTime.toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+      }),
+      reminder: selectedReminder?.value,
     };
-    console.log('Habit updated:', updatedHabit);
+    console.log("Habit updated:", updatedHabit);
     closeBottomSheet();
   };
 
@@ -132,9 +146,9 @@ export default function Home() {
     if (selectedHabit) {
       const updatedHabit = {
         ...selectedHabit,
-        completed: true
+        completed: true,
       };
-      console.log('Habit completed:', updatedHabit);
+      console.log("Habit completed:", updatedHabit);
       closeBottomSheet();
     }
   };
@@ -172,18 +186,21 @@ export default function Home() {
             setEndTime={setEndTime}
           />
         </View>
-        <View style={{ width: 'auto', alignSelf: 'center', marginTop: 10 }}>
-          <MyButton 
-            label="Complete" 
-            onPress={handleComplete} 
-            outlined={true} 
-          />
+        <View style={{ width: "auto", alignSelf: "center", marginTop: 10 }}>
+          <MyButton label="Complete" onPress={handleComplete} outlined={true} />
         </View>
-        <View style={{ width: 'auto', alignSelf: 'center', marginTop: 10, marginBottom: 10 }}>
-          <MyButton 
-            label="Save changes" 
-            onPress={handleSave} 
-            outlined={false} 
+        <View
+          style={{
+            width: "auto",
+            alignSelf: "center",
+            marginTop: 10,
+            marginBottom: 10,
+          }}
+        >
+          <MyButton
+            label="Save changes"
+            onPress={handleSave}
+            outlined={false}
           />
         </View>
       </View>
@@ -205,42 +222,19 @@ export default function Home() {
         />
       </View>
       <View style={styles.main}>
-        <Habit
-          name="Run"
-          color={habits.run.color}
-          startTime="9:00"
-          endTime="10:00"
-          onPress={() => handleHabitPress({
-            name: "Run",
-            color: habits.run.color,
-            startTime: "9:00",
-            endTime: "10:00"
-          })}
-        />
-        <Habit
-          name="Read"
-          color={habits.read.color}
-          startTime="12:00"
-          endTime="14:00"
-          onPress={() => handleHabitPress({
-            name: "Read",
-            color: habits.read.color,
-            startTime: "12:00",
-            endTime: "14:00"
-          })}
-        />
-        <Habit
-          name="Drink water"
-          color={habits.water.color}
-          startTime="14:00"
-          endTime="14:15"
-          onPress={() => handleHabitPress({
-            name: "Drink water",
-            color: habits.water.color,
-            startTime: "14:00",
-            endTime: "14:15"
-          })}
-        />
+        {habit?.map((item, key) => {
+          return (
+            <Habit
+              key={key}
+              name={item.nombre}
+              color={habits.run.color}
+              startTime={item.fecha.slice(11, 16)}
+              endTime="23:00"
+              completed={item.completado}
+              onPress={handleSave}
+            />
+          );
+        })}
       </View>
       {isEditOpen && <View style={styles.overlay} />}
       {isEditOpen && (
@@ -306,5 +300,5 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     gap: 10,
     paddingHorizontal: 10,
-  }
+  },
 });
