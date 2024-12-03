@@ -7,7 +7,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import axios from "axios";
 import apiURL from "../../api/usuariosApi";
 import { StyleSheet } from "react-native";
-
+import { useDataContext } from "@/context/dataContext";
 
 interface UserProfile {
   nombre: string;
@@ -18,14 +18,15 @@ interface UserProfile {
 export default function Settings() {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const router = useRouter();
+  const { data } = useDataContext();
 
   const fetchUserProfile = async () => {
     try {
       const userId: string | null = await AsyncStorage.getItem("user");
 
-      const response = await axios.post(`${apiURL}/profile/me`, {userId});
+      const response = await axios.post(`${apiURL}/profile/me`, { userId });
 
-      console.log(response.data)
+      console.log(response.data);
 
       setUserProfile(response.data); // Asumimos que el API devuelve los datos del perfil del usuario
     } catch (err) {
@@ -34,7 +35,8 @@ export default function Settings() {
   };
 
   useEffect(() => {
-    fetchUserProfile();
+    // fetchUserProfile();
+    setUserProfile(data?.user);
   }, []);
 
   const handlePress = async () => {
@@ -62,7 +64,6 @@ export default function Settings() {
             {/* Nombre y correo */}
             <Text style={styles.profileName}>{userProfile.nombre}</Text>
             <Text style={styles.profileEmail}>{userProfile.correo}</Text>
-          
 
             {/* Botón de cierre de sesión */}
             <MyButton
@@ -70,7 +71,6 @@ export default function Settings() {
               outlined={true}
               onPress={handlePress}
             />
-
           </View>
         </>
       ) : (

@@ -8,11 +8,14 @@ import MyTextInput from "@/components/MyTextInput";
 import MyButton from "@/components/MyButton";
 import axios from "axios";
 import apiURL from "../api/usuariosApi";
+import gatewayAPI from "@/api/gatewayApi";
+import { useDataContext } from "@/context/dataContext";
 
 const LoginScreen = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const router = useRouter();
+  const { setData } = useDataContext();
 
   function fixBase64(token: string) {
     return token.replace(/-/g, "+").replace(/_/g, "/");
@@ -32,6 +35,11 @@ const LoginScreen = () => {
       const userId = decodedIdToken.sub;
 
       await AsyncStorage.setItem("user", userId as string);
+
+      const responses = await gatewayAPI.getAllResponses(userId as string);
+      if (responses) {
+        setData(responses);
+      }
 
       router.replace("/(tabs)");
     } catch (err) {

@@ -18,6 +18,7 @@ import apiURL from "../../api/amigosApi";
 import chatAPI from "@/api/chatApi";
 import MyButton from "@/components/MyButton";
 import socket from "@/utils/socket";
+import { useDataContext } from "@/context/dataContext";
 
 interface Friend {
   id: string;
@@ -41,23 +42,28 @@ export default function Friends() {
   const [friends, setFriends] = useState<Friend[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [email, setEmail] = useState("");
-  const [solicitudes, setSolicitudes] = useState<Solicitudes[]>([]); // Cambié el tipo a any para incluir el perfil
-  const [solicitudesModalVisible, setSolicitudesModalVisible] = useState(false); // Nuevo estado para el modal de solicitudes
+  const [solicitudes, setSolicitudes] = useState<Solicitudes[]>([]);
+  const [solicitudesModalVisible, setSolicitudesModalVisible] = useState(false);
+  const { data } = useDataContext();
+
+  // useEffect(() => {
+  //   const fetchFriends = async () => {
+  //     try {
+  //       const userId = await AsyncStorage.getItem("user");
+  //       const response = await axios.post(`${apiURL}/amistad/amigos`, {
+  //         userId,
+  //       });
+  //       setFriends(response.data);
+  //     } catch (error) {
+  //       console.error("Error al obtener amigos:", error);
+  //     }
+  //   };
+
+  //   fetchFriends();
+  // }, []);
 
   useEffect(() => {
-    const fetchFriends = async () => {
-      try {
-        const userId = await AsyncStorage.getItem("user");
-        const response = await axios.post(`${apiURL}/amistad/amigos`, {
-          userId,
-        });
-        setFriends(response.data);
-      } catch (error) {
-        console.error("Error al obtener amigos:", error);
-      }
-    };
-
-    fetchFriends();
+    setFriends(data?.friends);
   }, []);
 
   const handleChat = async (participant2: string, name: string) => {

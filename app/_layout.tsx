@@ -1,3 +1,5 @@
+import gatewayAPI from "@/api/gatewayApi";
+import { DataProvider, useDataContext } from "@/context/dataContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFonts } from "expo-font";
 import { Stack, useRouter } from "expo-router";
@@ -7,6 +9,28 @@ import "react-native-reanimated";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
+
+const LoadDataWrapper = ({ children }: { children: React.ReactNode }) => {
+  const { setData } = useDataContext();
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const userId = await AsyncStorage.getItem("user");
+        if (userId) {
+          const response = await gatewayAPI.getAllResponses(userId);
+          setData(response);
+        }
+      } catch (error) {
+        console.error("Error al cargar datos del Gateway:", error);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  return <>{children}</>;
+};
 
 export default function RootLayout() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -51,12 +75,16 @@ export default function RootLayout() {
   }
 
   return (
-    <Stack>
-      <Stack.Screen name="login" options={{ headerShown: false }} />
-      <Stack.Screen name="register" options={{ headerShown: false }} />
-      <Stack.Screen name="recover" options={{ headerShown: false }} />
-      <Stack.Screen name="chat" options={{ headerShown: false }} />
-      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-    </Stack>
+    <DataProvider>
+      <LoadDataWrapper>
+        <Stack>
+          <Stack.Screen name="login" options={{ headerShown: false }} />
+          <Stack.Screen name="register" options={{ headerShown: false }} />
+          <Stack.Screen name="recover" options={{ headerShown: false }} />
+          <Stack.Screen name="chat" options={{ headerShown: false }} />
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        </Stack>
+      </LoadDataWrapper>
+    </DataProvider>
   );
 }
