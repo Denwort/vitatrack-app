@@ -1,6 +1,11 @@
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
-import { View, Text, TextInput, Button } from "react-native";
+import { View, Text, StyleSheet, Image } from "react-native";
+import MyTextInput from "@/components/MyTextInput";
+import MyButton from "@/components/MyButton";
+import { SafeAreaView } from "react-native-safe-area-context";
+import axios from "axios";
+import apiURL from "../api/usuariosApi";
 
 const RecoverPasswordScreen = () => {
   const [step, setStep] = useState(1); // Paso inicial
@@ -9,55 +14,47 @@ const RecoverPasswordScreen = () => {
   const [newPassword, setNewPassword] = useState("");
   const router = useRouter();
 
-  const handleSendEmail = () => {
-    // Lógica para enviar el correo de recuperación aquí
+  const handleSendEmail = async () => {
     console.log("Enviar correo de recuperación a", email);
-    setStep(2); // Avanza al siguiente paso
+    try {
+      await axios.post(`${apiURL}/auth/forgot`, { correo: email });
+      setStep(2); // Avanza al siguiente paso
+    } catch (err) {
+      console.error("Error enviando el correo de recuperación:", err);
+    }
   };
 
-  const handleVerifyCode = () => {
-    // Lógica para verificar el código aquí
+  const handleVerifyCode = async () => {
     console.log("Verificar código", code);
-    setStep(3); // Avanza al siguiente paso
+    try {
+      setStep(3);
+    } catch (err) {
+      console.error("Error verificando el código:", err);
+    }
   };
 
-  const handleResetPassword = () => {
-    // Lógica para restablecer la contraseña aquí
+  const handleResetPassword = async () => {
     console.log("Restablecer la contraseña a", newPassword);
-    // Aquí podrías agregar un mensaje de éxito o redirigir al usuario
-    router.push("/login");
+    try {
+      await axios.post(`${apiURL}/auth/reset`, { correo: email, codigo: code, nuevaContrasena: newPassword });
+      router.push("/login");
+    } catch (err) {
+      console.error("Error restableciendo la contraseña:", err);
+    }
   };
 
   return (
-    <View
-      style={{
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-        padding: 16,
-      }}
-    >
+    <SafeAreaView style={styles.container}>
       {step === 1 && (
         <>
-          <Text style={{ fontSize: 20, fontWeight: "bold", marginBottom: 20 }}>
-            Recuperar Contraseña
-          </Text>
-          <TextInput
-            style={{
-              width: "100%",
-              padding: 10,
-              marginVertical: 10,
-              borderWidth: 1,
-              borderColor: "#ccc",
-              borderRadius: 5,
-            }}
-            placeholder="Correo Electrónico"
-            value={email}
+          <Text style={styles.title}>Recuperar Contraseña</Text>
+          <MyTextInput
+            label="Correo Electrónico"
             onChangeText={setEmail}
-            keyboardType="email-address"
           />
-          <Button
-            title="Enviar Correo de Recuperación"
+          <MyButton
+            label="Enviar Recuperación"
+            outlined={false}
             onPress={handleSendEmail}
           />
         </>
@@ -65,54 +62,54 @@ const RecoverPasswordScreen = () => {
 
       {step === 2 && (
         <>
-          <Text style={{ fontSize: 20, fontWeight: "bold", marginBottom: 20 }}>
-            Verificar Código
-          </Text>
-          <TextInput
-            style={{
-              width: "100%",
-              padding: 10,
-              marginVertical: 10,
-              borderWidth: 1,
-              borderColor: "#ccc",
-              borderRadius: 5,
-            }}
-            placeholder="Código de Verificación"
-            value={code}
+          <Text style={styles.title}>Verificar Código</Text>
+          <MyTextInput
+            label="Código de Verificación"
             onChangeText={setCode}
-            keyboardType="numeric"
           />
-          <Button title="Verificar Código" onPress={handleVerifyCode} />
+          <MyButton
+            label="Verificar Código"
+            outlined={false}
+            onPress={handleVerifyCode}
+          />
         </>
       )}
 
       {step === 3 && (
         <>
-          <Text style={{ fontSize: 20, fontWeight: "bold", marginBottom: 20 }}>
-            Nueva Contraseña
-          </Text>
-          <TextInput
-            style={{
-              width: "100%",
-              padding: 10,
-              marginVertical: 10,
-              borderWidth: 1,
-              borderColor: "#ccc",
-              borderRadius: 5,
-            }}
-            placeholder="Nueva Contraseña"
-            value={newPassword}
+          <Text style={styles.title}>Nueva Contraseña</Text>
+          <MyTextInput
+            label="Nueva Contraseña"
             onChangeText={setNewPassword}
-            secureTextEntry
           />
-          <Button
-            title="Restablecer Contraseña"
+          <MyButton
+            label="Restablecer"
+            outlined={false}
             onPress={handleResetPassword}
           />
         </>
       )}
-    </View>
+    </SafeAreaView>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    alignItems: "center",
+    padding: 20,
+    backgroundColor: "white",
+  },
+  title: {
+    fontFamily: "Poppins-SemiBold",
+    fontSize: 28,
+    marginBottom: 20,
+  },
+  image: {
+    width: 200,
+    height: 200,
+    marginBottom: 30,
+  },
+});
 
 export default RecoverPasswordScreen;
